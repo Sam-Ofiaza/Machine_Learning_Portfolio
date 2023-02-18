@@ -1,5 +1,5 @@
 ---
-title: "Logistic Regression on the Kaggle Dataset Medals Data Set"
+title: "Classification on the Kaggle Dataset Medals Data Set"
 author: "Sam Ofiaza"
 output:
   html_document:
@@ -11,6 +11,7 @@ The Kaggle Dataset Medals data set contains information on datasets including th
 
 Credit to Niek van der Zwaag for the data set ([link](https://www.kaggle.com/datasets/niekvanderzwaag/kaggle-dataset-medals?select=dataset_medal_total.csv)).
 
+
 ### Linear Models for Classification Overview
 
 As opposed to linear models for regression, linear models for classification are those whose target is qualitative. The overall goal for these models is not to find a line of best fit, but to find a line that divides classes. These models have probabilistic results that are easy to interpret and are easy to calculate, update, and scale. However, they are inflexible and simple compared to other classification algorithms. They won't perform well if the data deviates too much from their simplistic assumptions. The two linear models for classification used in this notebook are Logistic Regression and Naive Bayes.
@@ -20,24 +21,50 @@ df <- read.csv("./dataset_medal_total.csv")
 df <- df[, c(2, 5, 6, 7, 8)]
 df$Medal <- factor(df$Medal, levels=c("None", "Bronze", "Silver", "Gold"))
 str(df)
-sapply(df, function(x) sum(is.na(x)==TRUE))
 ```
+
+
+#### Data Summary
 
 ```{r}
 str(df)
 ```
 
+
+#### Data Visualization
+
 ```{r}
-plot(df$Views, df$Votes, pch=21, bg=c("black", "brown", "lightgray", "gold")[unclass(df$Medal)])
+plot(df$Views, df$Votes, pch=21, bg=c("black", "brown", "lightgray", "gold")[unclass(df$Medal)], main="Votes vs Views for Medals Overall")
+```
+
+
+#### Clearer View of each Medal's Distribution
+
+```{r}
+par(mfrow=c(2,2))
+df2 <- df[df$Medal == "None",]
+plot(df2$Views, df2$Votes, main="None", col="black", xlim=c(0,1500000), ylim=c(0,8000))
+df2 <- df[df$Medal == "Bronze",]
+plot(df2$Views, df2$Votes, main="Bronze", col="brown", xlim=c(0,1500000), ylim=c(0,8000))
+df2 <- df[df$Medal == "Silver",]
+plot(df2$Views, df2$Votes, main="Silver", col="lightgray", xlim=c(0,1500000), ylim=c(0,8000))
+df2 <- df[df$Medal == "Gold",]
+plot(df2$Views, df2$Votes, main="Gold", col="gold", xlim=c(0,1500000), ylim=c(0,8000))
 ```
 
 ```{r}
 pairs(df[2:5], pch=21, bg=c("black", "brown", "lightgray", "gold")[unclass(df$Medal)])
 ```
 
+
+#### Overall Medal Distribution
+
 ```{r}
 table(df$Medal)/nrow(df)
 ```
+
+
+#### Creation of One vs Many sub data sets
 
 ```{r}
 gold <- df
@@ -51,9 +78,7 @@ bronze$Medal <- as.factor(ifelse (df$Medal=="Bronze", 1, 0))
 
 none <- df
 none$Medal <- as.factor(ifelse (df$Medal=="None", 1, 0))
-```
 
-```{r}
 fun1 <- function(df, i) {
   train <- df[i,]
   glm1 <- glm(Medal~., data=train, family="binomial")
@@ -71,10 +96,15 @@ fun2 <- function(glm, df, i) {
 ```
 
 
+#### Divide into 80/20 train/test
+
 ```{r}
 set.seed(4321)
 i <- sample(1:nrow(df), nrow(df)*0.8, replace=FALSE)
 ```
+
+
+#### Creation of Linear Models for each Medal Type
 
 ```{r}
 glm1 <- fun1(gold, i)
@@ -100,6 +130,9 @@ summary(glm4)
 
 The estimate column in the coefficients table indicates the change in log odds for each predictor in receiving the model's corresponding positive class (its specific medal). The four summaries correspond to the four classes gold, silver, bronze, and none respectively. For example, in the above summary for receiving no medals, receiving one more view will decrease the log odds of receiving no medal by -1.578e9. Each additional vote will increase the log odds of receiving no medal by 9.613e12. The p-value for each predictor in each model is significant in determining its model's medal except every predictor in gold's model and Downloads in silver and bronze's models. A lower residual deviance value compared to the null deviance value indicates that adding the predictors helped the model compared to just having the intercept. It seems that this occurred in every model, particularly in gold's case where the difference is several orders of magnitude higher compared to the rest. All of this indicates that the models are all good.
 
+
+#### Creation of Naive Bayes Model
+
 ```{r}
 library(e1071)
 train <- df[i,]
@@ -111,6 +144,9 @@ nb1
 ### Naive Bayes Model Summary Analysis
 
 The A-priori probabilities are the estimated probabilities of each class before using any predictor. Unsurprisingly, receiving no medal is most likely for most datasets. Each conditional probability table for each predictor indicates how the binomial distribution of that predictor appears. The columns [,1] and [,2] are the mean and variance, respectively. 
+
+
+#### Calculation of Metrics for both the Logistic Regression and Naive Bayes Models
 
 ```{r}
 fun2(glm1, gold, i)
@@ -134,13 +170,16 @@ A <- table(p1, test$Medal)
 A[order(A[,1], decreasing=TRUE), order(A[,1], decreasing=TRUE)]
 ```
 
+
 ### Analysis of Prediction Results on Test Data
 
 The one vs many approach used in Logistic Regression worked perfectly for gold, very well for silver, decent for bronze, and horribly for none based on accuracy and the confusion matrices. The confusion matrix for none in particular contains a high amount of false positives. The Naive Bayes results seem better overall by losing accuracy for gold and silver and gaining accuracy for none and bronze compared to the results for logistic regression. I believe that Logistic Regression performed poorly because it was unable to distinguish clear boundaries between the none class, which is ~80% of the data, and the other classes.
 
+
 ### Strengths and Weaknesses of Logistic Regression and Naive Bayes
 
 Logistic Regression has easy to interpret probabilistic results and can be optimized to reduce error with gradient descent. It is better than Naive Bayes when used with large data sets. It does not do well when the classes are muddied together and cannot be cleanly separated with linear boundaries. Naive Bayes works very well for being so simple and can be easy to implement despite the fact that its assumption of independent predictors is often untrue. However, its results can be beaten with more complex models. It has higher bias and lower variance compared to Logistic Regression.
+
 
 ### Benefits and Drawbacks of the Classification Metrics
 
