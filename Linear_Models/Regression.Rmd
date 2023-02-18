@@ -1,0 +1,118 @@
+---
+title: "Linear Regression on the Kaggle Dataset Medals Data Set"
+author: "Sam Ofiaza"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+The Kaggle Dataset Medals data set contains information on datasets including the medal it has received (if any) and how many votes, views, downloads, etc. it has.
+
+Credit to Niek van der Zwaag for the data set ([link](https://www.kaggle.com/datasets/niekvanderzwaag/kaggle-dataset-medals?select=dataset_medal_total.csv)).
+
+### Linear Regression Overview
+
+Linear regression is a parametric model that predicts quantitative values from parameters. It estimates a line of best fit for the data by estimating a slope and intercept. The line of best fit does not have to be straight - polynomial, logistic, etc. lines are also possible. Linear regression is best used when the data has a Gaussian distribution and when both the predictor and target variables are both continuous. Linear regression's pitfalls are that it will underfit the data and that interaction between predictors, variables that correlate with both predictors and the target, and hidden variables will interfere with the model.
+
+```{r}
+df <- read.csv("./dataset_medal_total.csv")
+df <- df[, c(2, 5, 6, 7, 8)]
+df$Medal <- as.factor(df$Medal)
+str(df)
+sapply(df, function(x) sum(is.na(x)==TRUE))
+```
+
+```{r}
+set.seed(1234)
+i <- sample(1:nrow(df), nrow(df)*0.8, replace=FALSE)
+train <- df[i,]
+test <- df[-i,]
+```
+
+```{r}
+str(df)
+```
+
+```{r}
+par(mfrow=c(3,1))
+plot(train$Views, train$Votes, xlab="Views", ylab="Votes")
+plot(train$Downloads, train$Votes, xlab="Downloads", ylab="Votes")
+```
+
+
+```{r}
+lm1 <- lm(Votes~Views, data=train)
+summary(lm1)
+```
+
+### Model Summary Analysis
+
+The model estimated the intercept to be 1.949 and the slope to be 2.898e-3 with an extremely low p-value, meaning that these estimates are most likely accurate. The residual standard error was 59.61, so the model was off by an average of 59.61 votes per entry. A good R-squared value is close to -1 or 1, so a value of 0.7074 is not bad. Because the p-value of the overall model is so small, it is safe to reject the null hypothesis and say that the results are statistically significant.
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm1)
+```
+
+### Residual Plots
+
+The Residuals vs Fitted plot seems to indicate linearity but there is a clear density on the left so it is possible that some improvement can be made with the model. The Normal Q-Q plot indicates a decently strong normal distribution with some variation at the ends. Data point 16851 seems to be an outlier. The Scale-Location plot does not indicate equal variance in the model as the points are not equally spread and the line is not exactly horizontal. The Residuals vs Leverage plot points out some influential data points that are seen as clearly outside the dotted grey lines, such as 11197, 2856, and 8523. If we excluded these points, the results will be significantly altered.
+
+```{r}
+lm2 <- lm(Votes~Views+Downloads, data=train)
+summary(lm2)
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm2)
+```
+
+```{r}
+lm3 <- lm(Votes~Views*Downloads, data=train)
+summary(lm3)
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm3)
+```
+
+### Comparing the 3 Models
+
+Model 1 with only Views as a predictor had an R-squared value of 0.7074. Model 2 with Views and Downloads as predictors had an R-squared value of 0.7492. Model 3 with Views, Downloads, and a possible interaction effect between Views and Downloads as predictors had an R-squared value of 0.7501. Given that all 3 models have the same miniscule p-value, Model 3 seems to be the best model based on its R-value.
+
+```{r}
+pred1 = predict(lm1, newdata=test)
+cor1 <- cor(pred1, test$Votes)
+mse1 <- mean((pred1-test$Votes)^2)
+rmse1 <- sqrt(mse1)
+print(paste('correlation:', cor1))
+print(paste('mse:', mse1))
+print(paste('rmse:', rmse1))
+```
+
+```{r}
+pred2 = predict(lm2, newdata=test)
+cor2 <- cor(pred2, test$Votes)
+mse2 <- mean((pred2-test$Votes)^2)
+rmse2 <- sqrt(mse2)
+print(paste('correlation:', cor2))
+print(paste('mse:', mse2))
+print(paste('rmse:', rmse2))
+```
+
+```{r}
+pred3 = predict(lm3, newdata=test)
+cor3 <- cor(pred3, test$Votes)
+mse3 <- mean((pred3-test$Votes)^2)
+rmse3 <- sqrt(mse3)
+print(paste('correlation:', cor3))
+print(paste('mse:', mse3))
+print(paste('rmse:', rmse3))
+```
+
+### Analysis of Prediction Results on Test Data
+
+A correlation value close to either -1 or 1 and a low rmse value is ideal. Out of the 3, Model 1 seems to be the better model based on the the calculated metrics above with the highest correlation and lowest rmse. This indicates that considering Views as the only predictor results in the best predictor for Votes. My best guess on why this happened is that Downloads is not a good predictor for Votes and thus adding Downloads as a predictor in any way caused the model to perform worse.
