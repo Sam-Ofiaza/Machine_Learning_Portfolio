@@ -5,5 +5,8 @@ A portfolio of work completed in my Intro to Machine Learning course
 View an overview [here](Overview_of_ML.pdf).
 
 ## Data Exploration
-View a short [document](Data_Exploration.pdf) and the [code](data_exploration.cpp).
+View a short [document](Data_Exploration/Data_Exploration.pdf) and the [code](Data_Exploration/data_exploration.cpp).
 To run the code, change the path in inFS.open() to the absolute path of wherever you have 'Boston.csv', navigate to where you downloaded the cpp file, and run g++ data_exploration.cpp -o data_exploration -static; ./data_exploration
+
+## Linear Models
+View the [Regression](Linear_Models/Linear_Regression_on_the_Kaggle_Dataset_Medals_Data_Set.pdf) and [Classification](Linear_Models/Logistic_Regression_on_the_Kaggle_Dataset_Medals_Data_Set.pdf) pdfs. To run the notebooks, download the linked data set, extract the files, and use dataset_medal_total.csv
