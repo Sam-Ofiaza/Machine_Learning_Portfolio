@@ -16,3 +16,6 @@ View a short [document](ML_Algos_from_Scratch/ML_Algorithms_from_Scratch.pdf) an
 To run the code, change the path in inFS.open() to the absolute path of wherever you have 'titanic_project.csv', navigate to where you downloaded the cpp file, and run the following:\
 g++ log_reg.cpp -o log_reg -static; ./log_reg\
 g++ naive_bayes.cpp -o naive_bayes -static; ./naive_bayes
+
+## sklearn
+View a [demo](sklearn.ipynb) with logistic regression, decision trees, and neural networks in Python.
