@@ -17,5 +17,9 @@ To run the code, change the path in inFS.open() to the absolute path of wherever
 g++ log_reg.cpp -o log_reg -static; ./log_reg\
 g++ naive_bayes.cpp -o naive_bayes -static; ./naive_bayes
 
-## sklearn
+## Neural Networks in Python with sklearn
 View a [demo](sklearn.ipynb) with logistic regression, decision trees, and neural networks in Python.
+
+## Image Multiclass Classification in Python
+View the [notebook](Image_Multiclass_Classification/Image_Classification&#32;(1).ipynb) classifying x-rays of various types of brain tumors using a sequential model, CNN, and transfer learning.
+
